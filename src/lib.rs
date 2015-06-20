@@ -3,11 +3,17 @@
 #[cfg(test)]
 use noisemap::{NoiseMap, Seed, Step, Size};
 
+#[cfg(test)]
+use noise::perlin::PerlinNoise;
+
+pub mod noise;
 pub mod noisemap;
 
 #[test]
 fn it_works() {
-    let nm = NoiseMap::new()
+    let noise = PerlinNoise::new();
+
+    let nm = NoiseMap::new(noise)
         .set(Seed::of("Hello"))
         .set(Step::of(0.005, 0.002))
         .set(Size::of(5, 5));
