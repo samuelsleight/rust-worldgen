@@ -1,3 +1,7 @@
+//! A provider of coherent noise.
+//! This generates a noise value for each corner of the unit square the given
+//! point is in, and then calculates the noise value based on these.
+
 extern crate libc;
 
 use super::NoiseProvider;

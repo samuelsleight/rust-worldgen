@@ -1,3 +1,74 @@
+//! Generators for finite noise maps
+//!
+//! A `NoiseMap` takes a `NoiseProvider` and uses it to generate a map
+//! of noise.
+//!
+//! They have properties that can be set to specify the seed used for
+//! noise generation, the size of the generated map, and the scale of the
+//! coordinates used for generation.
+//!
+//! A simple noise map is created by wrapping a source of noise, and then
+//! setting the required properties:
+//!
+//! ```
+//! # use worldgen::noise::perlin::PerlinNoise;
+//! # use worldgen::noisemap::{NoiseMap, NoiseMapGenerator, Seed, Size, Step};
+//! let noise = PerlinNoise::new();
+//!
+//! let nm = NoiseMap::new(noise)
+//!     .set(Seed::of("Hello!"))
+//!     .set(Size::of(10, 10))
+//!     .set(Step::of(0.02, 0.02));
+//! ```
+//!
+//! By default, a noise map will generate values between -1 and 1, however
+//! one can be scaled by multiplying it by an integer:
+//!
+//! ```
+//! # use worldgen::noise::perlin::PerlinNoise;
+//! # use worldgen::noisemap::{NoiseMap, NoiseMapGenerator};
+//! # let noise = PerlinNoise::new();
+//! # let nm = NoiseMap::new(noise);
+//! let nm = nm * 3;
+//! ```
+//!
+//! This produces a `ScaledNoiseMap`, which multiplies all of its values
+//! by the factor when they are generated.
+//!
+//! Noise maps can also be combined by adding them together:
+//!
+//! ```
+//! # use worldgen::noise::perlin::PerlinNoise;
+//! # use worldgen::noisemap::{NoiseMap, NoiseMapGenerator};
+//! # let noise = PerlinNoise::new();
+//! # let nm1 = NoiseMap::new(noise);
+//! # let nm2 = NoiseMap::new(noise);
+//! let nm = nm1 + nm2 * 3;
+//! ```
+//!
+//! This final result will be normalised back between -1 and 1.
+//!
+//! Once you have the noise map you want, you can then use it to produce
+//! a vector of rows of values:
+//!
+//! ```
+//! # use worldgen::noise::perlin::PerlinNoise;
+//! # use worldgen::noisemap::{NoiseMap, NoiseMapGenerator};
+//! # let noise = PerlinNoise::new();
+//! # let nm = NoiseMap::new(noise);
+//! for row in nm.generate().iter() {
+//!     for value in row.iter() {
+//!         print!("{}", value);
+//!     }
+//!     println!("");
+//! }
+//! ```
+//!
+//! A noise map is essentially an infinite plane of numbers, and the `generate`
+//! method produces the central chunk of the size specified. You can use the 
+//! `generate_chunk` method to generate specific chunks and produce infinite
+//! maps.
+
 use noise::NoiseProvider;
 
 use std::default::Default;
@@ -8,14 +79,64 @@ use self::property::Property;
 
 mod property;
 
+/// Base trait for noise maps.
+///
+/// `NoiseMap`, `ScaledNoiseMap`, and `NoiseMapCombination` all implement
+/// this trait.
 pub trait NoiseMapGenerator : Clone + Copy {
+    /// Generates the central chunk of the noise map.
+    ///
+    /// The returned vector is a vector of rows of values.
+    ///
+    /// This simply calls ```self.generate_chunk(0, 0)```.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use worldgen::noise::perlin::PerlinNoise;
+    /// # use worldgen::noisemap::{NoiseMap, NoiseMapGenerator};
+    /// # let noise = PerlinNoise::new();
+    /// # let nm = NoiseMap::new(noise);
+    /// for row in nm.generate().iter() {
+    ///     for value in row.iter() {
+    ///         print!("{}", value);
+    ///     }
+    ///     println!("");
+    /// }
+    /// ```
     fn generate(&self) -> Vec<Vec<f64>> {
         self.generate_chunk(0, 0)
     }
 
+    /// Generates a specific chunk of the noise map.
+    ///
+    /// This can be used to generate a larger map in smaller parts.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use worldgen::noise::perlin::PerlinNoise;
+    /// # use worldgen::noisemap::{NoiseMap, NoiseMapGenerator};
+    /// # let noise = PerlinNoise::new();
+    /// # let nm = NoiseMap::new(noise);
+    /// for y in (0 .. 5) {
+    ///     for row in nm.generate_chunk(0, y).iter() {
+    ///         for value in row.iter() {
+    ///             print!("{}", value);
+    ///         }
+    ///         println!("");
+    ///     }
+    /// }
+    /// ```
     fn generate_chunk(&self, x: i32, y: i32) -> Vec<Vec<f64>>;
 }
 
+/// The standard noise map.
+///
+/// This is the base noise map, and is created by wrapping a 
+/// noise source. It has properties that allow the setting of the
+/// generation seed, the size of the generated chunks, and the coordinate
+/// scale.
 #[derive(Default, Debug, Clone, Copy)]
 pub struct NoiseMap<T> {
     seed: Seed,
@@ -25,12 +146,40 @@ pub struct NoiseMap<T> {
     noise: T
 }
 
+/// A scaled noise map.
+///
+/// Created when a noise map is multiplied:
+///
+/// ```
+/// # use worldgen::noise::perlin::PerlinNoise;
+/// # use worldgen::noisemap::NoiseMap;
+/// # let noise = PerlinNoise::new();
+/// # let nm = NoiseMap::new(noise);
+///
+/// let snm = nm * 5;
+/// ```
 #[derive(Debug, Clone, Copy)]
 pub struct ScaledNoiseMap<T> {
     nm: T,
     scale: i32
 }
 
+/// A combination of noise maps.
+///
+/// Created when two noise maps are added together. The resulting noise
+/// map values will be normalised to between -1 and 1. The size of the
+/// generated noise map is currently reduced to to the size of the smallest
+/// component map.
+///
+/// ```
+/// # use worldgen::noise::perlin::PerlinNoise;
+/// # use worldgen::noisemap::NoiseMap;
+/// # let noise = PerlinNoise::new();
+/// # let nm1 = NoiseMap::new(noise);
+/// # let nm2 = NoiseMap::new(noise);
+///
+/// let nmc = nm1 + nm2 * 5;
+/// ```
 #[derive(Debug, Clone, Copy)]
 pub struct NoiseMapCombination<T1, T2> {
     nm1: T1,
@@ -41,6 +190,7 @@ pub struct NoiseMapCombination<T1, T2> {
 }
 
 impl<T: NoiseProvider> NoiseMap<T> {
+    /// Construct a new noise map with the default properties.
     pub fn new(noise: T) -> NoiseMap<T> {
         NoiseMap {
             noise: noise,
@@ -60,6 +210,7 @@ impl<T: NoiseProvider> NoiseMapGenerator for NoiseMap<T> {
 }
 
 impl<T> NoiseMap<T> {
+    /// Set a property on the noise map.
     pub fn set<P: Property>(self, property: P) -> NoiseMap<T> {
         property.set_to(self)
     }
