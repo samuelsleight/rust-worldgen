@@ -119,7 +119,7 @@
 //! ```
 //!
 
-#![feature(hash)]
+#![feature(hash_default)]
 
 #[cfg(test)]
 use noisemap::{NoiseMap, NoiseMapGenerator, Seed, Step, Size};
