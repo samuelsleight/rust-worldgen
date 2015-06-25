@@ -1,7 +1,9 @@
 [package]
 name = "worldgen"
+description = "Noisemap and world generation library"
 version = "0.1.0"
-authors = ["Sam Sleight <samuel.sleight@gmail.com>"]
+authors = ["Samuel Sleight <samuel.sleight@gmail.com>"]
+license = "Apache-2.0"
 build = "build.rs"
 
 [dependencies]
