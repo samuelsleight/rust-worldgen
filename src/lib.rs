@@ -105,8 +105,7 @@
 //!
 //! let nm2 = NoiseMap::new(noise)
 //!     .set(Seed::of("Hello!"))
-//!     .set(Step::of(0.05, 0.05))
-//!     .set(Size::of(80, 50));
+//!     .set(Step::of(0.05, 0.05));
 //!
 //! let nm = nm1 + nm2 * 3;
 //!
@@ -166,8 +165,7 @@ fn it_works() {
 
     let nm2 = NoiseMap::new(noise)
         .set(Seed::of("Hello!"))
-        .set(Step::of(0.05, 0.05))
-        .set(Size::of(80, 50));
+        .set(Step::of(0.05, 0.05));
 
     let nm = nm1 + nm2 * 3;
 

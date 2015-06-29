@@ -18,6 +18,7 @@
 
 use super::NoiseMap;
 
+use std::cmp::{PartialOrd, Ord, Ordering};
 use std::default::Default;
 use std::hash::{hash, Hash, SipHasher};
 
@@ -27,7 +28,7 @@ pub trait Property : Default + Copy {
 }
 
 /// Sets the seed that is used for generating the noise.
-#[derive(Default, Copy, Clone, Debug)]
+#[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Seed {
     pub value: i32
 }
@@ -59,7 +60,7 @@ impl Property for Seed {
 ///
 /// The default values of this are 0, so if you do not set this then
 /// every value will be the same.
-#[derive(Default, Copy, Clone, Debug)]
+#[derive(Default, Copy, Clone, Debug, PartialEq)]
 pub struct Step {
     pub x: f64,
     pub y: f64
@@ -83,8 +84,10 @@ impl Property for Step {
 /// Sets the size of the generated chunks.
 ///
 /// The default values of this are 0, so if you do not set this then
-/// nothing will be generated.
-#[derive(Default, Copy, Clone, Debug)]
+/// nothing will be generated. In a combination it needs to be set for only
+/// one of the member noisemaps, because the size will be set to whichever is
+/// largest when the combination is created.
+#[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Size {
     pub w: i32,
     pub h: i32
@@ -102,5 +105,17 @@ impl Size {
 impl Property for Size {
     fn set_to<T>(self, nm: NoiseMap<T>) -> NoiseMap<T> {
         nm.set_size(self)
+    }
+}
+
+impl PartialOrd for Size {
+    fn partial_cmp(&self, other: &Size) -> Option<Ordering> {
+        (self.w * self.h).partial_cmp(&(other.w * other.h))
+    }
+}
+
+impl Ord for Size {
+    fn cmp(&self, other: &Size) -> Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }

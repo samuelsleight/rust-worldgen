@@ -91,6 +91,7 @@ use noise::NoiseProvider;
 
 use std::default::Default;
 use std::ops::{Add, Mul};
+use std::cmp;
 
 pub use self::property::{Seed, Step, Size};
 use self::property::Property;
@@ -147,6 +148,12 @@ pub trait NoiseMapGenerator : Clone + Copy {
     /// }
     /// ```
     fn generate_chunk(&self, x: i32, y: i32) -> Vec<Vec<f64>>;
+
+    /// Set a property on the noise map.
+    fn set<P: Property>(self, property: P) -> Self;
+    
+    /// Returns the size of the noise map.
+    fn get_size(&self) -> Size;
 }
 
 /// The standard noise map.
@@ -185,9 +192,9 @@ pub struct ScaledNoiseMap<T> {
 /// A combination of noise maps.
 ///
 /// Created when two noise maps are added together. The resulting noise
-/// map values will be normalised to between -1 and 1. The size of the
-/// generated noise map is currently reduced to to the size of the smallest
-/// component map.
+/// map values will be normalised to between -1 and 1. This will take on the
+/// size of the largest noise map in the combination, meaning you only have
+/// to set the size once.
 ///
 /// ```
 /// # use worldgen::noise::perlin::PerlinNoise;
@@ -219,20 +226,23 @@ impl<T: NoiseProvider> NoiseMap<T> {
 }
 
 impl<T: NoiseProvider> NoiseMapGenerator for NoiseMap<T> {
+    fn set<P: Property>(self, property: P) -> NoiseMap<T> {
+        property.set_to(self)
+    }
+
     fn generate_chunk(&self, x: i32, y: i32) -> Vec<Vec<f64>> {
         (y * self.size.h .. (y + 1) * self.size.h).map(|y| y as f64 * self.step.y)
             .map(|y| (x * self.size.w .. (x + 1) * self.size.w).map(|x| x as f64 * self.step.x)
                 .map(|x| self.noise.generate(x, y, self.seed.value)).collect()
             ).collect()
     }
+
+    fn get_size(&self) -> Size {
+        self.size
+    }
 }
 
 impl<T> NoiseMap<T> {
-    /// Set a property on the noise map.
-    pub fn set<P: Property>(self, property: P) -> NoiseMap<T> {
-        property.set_to(self)
-    }
-
     fn set_seed(self, seed: Seed) -> NoiseMap<T> {
         NoiseMap {
             seed: seed,
@@ -256,8 +266,19 @@ impl<T> NoiseMap<T> {
 }
 
 impl<T: NoiseMapGenerator> NoiseMapGenerator for ScaledNoiseMap<T> {
+    fn set<P: Property>(self, property: P) -> ScaledNoiseMap<T> {
+        ScaledNoiseMap {
+            nm: self.nm.set(property),
+            ..self
+        }
+    }
+
     fn generate_chunk(&self, x: i32, y: i32) -> Vec<Vec<f64>> {
         self.nm.generate_chunk(x, y).iter().map(|row| row.iter().map(|value| value * self.scale as f64).collect()).collect()
+    }
+
+    fn get_size(&self) -> Size {
+        self.nm.get_size()
     }
 }
 
@@ -268,6 +289,14 @@ impl<T> ScaledNoiseMap<T> {
 }
 
 impl<T1: NoiseMapGenerator, T2: NoiseMapGenerator> NoiseMapGenerator for NoiseMapCombination<T1, T2> {
+    fn set<P: Property>(self, property: P) -> NoiseMapCombination<T1, T2> {
+        NoiseMapCombination {
+            nm1: self.nm1.set(property),
+            nm2: self.nm2.set(property),
+            ..self
+        }
+    }
+
     fn generate_chunk(&self, x: i32, y: i32) -> Vec<Vec<f64>> {
         if self.outer {
             self.nm1.generate_chunk(x, y).iter()
@@ -278,6 +307,10 @@ impl<T1: NoiseMapGenerator, T2: NoiseMapGenerator> NoiseMapGenerator for NoiseMa
                 .zip(self.nm2.generate_chunk(x, y).iter())
                 .map(|(lr, rr)| lr.iter().zip(rr.iter()).map(|(lv, rv)| lv + rv).collect()).collect()
         }
+    }
+
+    fn get_size(&self) -> Size {
+        self.nm1.get_size()
     }
 }
 
@@ -323,7 +356,7 @@ impl<T1: NoiseProvider, T2: NoiseProvider> Add<NoiseMap<T2>> for NoiseMap<T1> {
 
             outer: true,
             total_scale: 2
-        }
+        }.set(cmp::max(self.get_size(), rhs.get_size()))
     }
 }
 
@@ -353,7 +386,7 @@ impl<T1: NoiseMapGenerator, T2: NoiseProvider> Add<NoiseMap<T2>> for ScaledNoise
 
             outer: true,
             total_scale: 1 + self.scale
-        }
+        }.set(cmp::max(self.get_size(), rhs.get_size()))
     }
 }
 
@@ -367,7 +400,7 @@ impl<T1: NoiseMapGenerator, T2: NoiseMapGenerator> Add<ScaledNoiseMap<T2>> for S
 
             outer: true,
             total_scale: self.scale + rhs.scale
-        }
+        }.set(cmp::max(self.get_size(), rhs.get_size()))
     }
 }
 
@@ -389,7 +422,7 @@ impl<T: NoiseProvider, T1: NoiseMapGenerator, T2: NoiseMapGenerator> Add<NoiseMa
 
             outer: true,
             total_scale: 1 + self.total_scale
-        }
+        }.set(cmp::max(self.get_size(), rhs.get_size()))
     }
 }
 
@@ -403,7 +436,7 @@ impl<T: NoiseMapGenerator, T1: NoiseMapGenerator, T2: NoiseMapGenerator> Add<Sca
 
             outer: true,
             total_scale: rhs.scale() + self.total_scale
-        }
+        }.set(cmp::max(self.get_size(), rhs.get_size()))
     }
 }
 
@@ -417,6 +450,6 @@ impl<L1: NoiseMapGenerator, L2: NoiseMapGenerator, R1: NoiseMapGenerator, R2: No
 
             outer: true,
             total_scale: rhs.total_scale + self.total_scale
-        }
+        }.set(cmp::max(self.get_size(), rhs.get_size()))
     }
 }
