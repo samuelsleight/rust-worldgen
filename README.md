@@ -2,6 +2,8 @@
 
 A library for simple generation of noisemaps and maps of objects in Rust.
 
+The full documentation can be found [here](http://www.samuelsleight.co.uk/rust-docs/worldgen).
+
 # Usage
 
 To use this library, simply add the following line to your Cargo.toml 
