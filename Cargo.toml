@@ -2,6 +2,7 @@
 name = "worldgen"
 description = "Noisemap and world generation library"
 version = "0.1.0"
+readme = "README.md"
 authors = ["Samuel Sleight <samuel.sleight@gmail.com>"]
 license = "Apache-2.0"
 build = "build.rs"
@@ -10,4 +11,5 @@ build = "build.rs"
 libc = "0.1.8"
 
 [build-dependencies]
+lazy_static = "0.1.11"
 gcc = "0.3.8"
