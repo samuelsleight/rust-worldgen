@@ -10,7 +10,7 @@ To use this library, simply add the following line to your Cargo.toml
 dependencies section:
 
 ```
-worldgen = "0.1.1"
+worldgen = "0.2.0"
 ```
 
 Then import the crate in your code:
