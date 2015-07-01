@@ -20,12 +20,15 @@
 //! This generates a noise value for each corner of the unit square the given
 //! point is in, and then calculates the noise value based on these.
 
-extern crate libc;
-
 use super::NoiseProvider;
 
-extern {
-    fn generate_random_value(x: libc::c_int, y: libc::c_int, seed: libc::c_int) -> libc::c_double;
+fn generate_random_value(x: i32, y: i32, seed: i32) -> f64 {
+    let m = wrapping! {
+        let n = ((x * 157) + (y * 31337) + (seed * 2633)) & 0x7fffffff;
+        (n << 13) ^ n
+    };
+
+    1.0 - (wrapping! { ((m * (m * m * 15731 + 789221) + 1376312579) & 0x7fffffff) as f64 } / 1073741824.0)
 }
 
 fn s_curve(a: f64) -> f64 {
@@ -50,10 +53,10 @@ impl NoiseProvider for CoherentNoise {
         let xd = s_curve(x - x0 as f64);
         let yd = s_curve(y - y0 as f64);
 
-        let x0y0 = unsafe { generate_random_value(x0, y0, seed) as f64 };
-        let x1y0 = unsafe { generate_random_value(x1, y0, seed) as f64 };
-        let x0y1 = unsafe { generate_random_value(x0, y1, seed) as f64 };
-        let x1y1 = unsafe { generate_random_value(x1, y1, seed) as f64 };
+        let x0y0 = generate_random_value(x0, y0, seed);
+        let x1y0 = generate_random_value(x1, y0, seed);
+        let x0y1 = generate_random_value(x0, y1, seed);
+        let x1y1 = generate_random_value(x1, y1, seed);
 
         let v1 = interpolate(x0y0, x1y0, xd);
         let v2 = interpolate(x0y1, x1y1, xd);

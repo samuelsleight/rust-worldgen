@@ -136,7 +136,8 @@
 //! ```
 //!
 
-#![feature(hash_default)]
+#![feature(hash_default, plugin)]
+#![plugin(wrapping_macros)]
 
 #[cfg(test)]
 use noisemap::{NoiseMap, NoiseMapGenerator, Seed, Step, Size};
