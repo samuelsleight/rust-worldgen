@@ -136,7 +136,7 @@
 //! ```
 //!
 
-#![feature(hash_default, plugin)]
+#![feature(plugin)]
 #![plugin(wrapping_macros)]
 
 #[cfg(test)]

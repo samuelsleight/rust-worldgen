@@ -105,13 +105,13 @@ impl PerlinNoise {
 }
 
 impl NoiseProvider for PerlinNoise {
-    fn generate(&self, x: f64, y: f64, seed: i32) -> f64 {
+    fn generate(&self, x: f64, y: f64, seed: u64) -> f64 {
         let mut x = x * self.freq.value;
         let mut y = y * self.freq.value;
         let mut pers = 1.0f64;
 
         (0 .. self.octaves.value).fold(0.0, |value, octave| {
-            let seed = seed + octave as i32;
+            let seed = seed + octave as u64;
             let value = value + CoherentNoise.generate(x, y, seed) * pers;
 
             x *= self.lacu.value;

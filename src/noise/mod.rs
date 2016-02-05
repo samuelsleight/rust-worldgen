@@ -32,5 +32,5 @@ pub mod coherent;
 /// The trait for a noise generator.
 pub trait NoiseProvider : Default + Clone + Copy {
     /// This method generates a value of noise at the given location, using a given seed.
-    fn generate(&self, x: f64, y: f64, seed: i32) -> f64;
+    fn generate(&self, x: f64, y: f64, seed: u64) -> f64;
 }

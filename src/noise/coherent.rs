@@ -43,7 +43,7 @@ fn interpolate(v1: f64, v2: f64, a: f64) -> f64 {
 pub struct CoherentNoise;
 
 impl NoiseProvider for CoherentNoise {
-    fn generate(&self, x: f64, y: f64, seed: i32) -> f64 {
+    fn generate(&self, x: f64, y: f64, seed: u64) -> f64 {
         let x0 = if x > 0.0 { x as i32 } else { (x - 1.0) as i32 };
         let x1 = x0 + 1;
 
@@ -53,10 +53,10 @@ impl NoiseProvider for CoherentNoise {
         let xd = s_curve(x - x0 as f64);
         let yd = s_curve(y - y0 as f64);
 
-        let x0y0 = generate_random_value(x0, y0, seed);
-        let x1y0 = generate_random_value(x1, y0, seed);
-        let x0y1 = generate_random_value(x0, y1, seed);
-        let x1y1 = generate_random_value(x1, y1, seed);
+        let x0y0 = generate_random_value(x0, y0, seed as i32);
+        let x1y0 = generate_random_value(x1, y0, seed as i32);
+        let x0y1 = generate_random_value(x0, y1, seed as i32);
+        let x1y1 = generate_random_value(x1, y1, seed as i32);
 
         let v1 = interpolate(x0y0, x1y0, xd);
         let v2 = interpolate(x0y1, x1y1, xd);

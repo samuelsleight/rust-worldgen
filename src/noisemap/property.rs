@@ -20,7 +20,7 @@ use super::NoiseMap;
 
 use std::cmp::{PartialOrd, Ord, Ordering};
 use std::default::Default;
-use std::hash::{hash, Hash, SipHasher};
+use std::hash::{Hash, Hasher, SipHasher};
 
 /// A property is an option that can be set on a noise map.
 pub trait Property : Default + Copy {
@@ -30,12 +30,12 @@ pub trait Property : Default + Copy {
 /// Sets the seed that is used for generating the noise.
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Seed {
-    pub value: i32
+    pub value: u64
 }
 
 impl Seed {
     /// Sets the seed to an exact integer value.
-    pub fn of_value(value: i32) -> Seed {
+    pub fn of_value(value: u64) -> Seed {
         Seed {
             value: value
         }
@@ -43,8 +43,11 @@ impl Seed {
 
     /// Sets the seed to the hash of whatever is provided.
     pub fn of<T: Hash>(value: T) -> Seed {
+        let mut hasher = SipHasher::new();
+        value.hash(&mut hasher);
+
         Seed {
-            value: hash::<_, SipHasher>(&value) as i32
+            value: hasher.finish() 
         }
     }
 }
@@ -89,12 +92,12 @@ impl Property for Step {
 /// largest when the combination is created.
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Size {
-    pub w: i32,
-    pub h: i32
+    pub w: i64,
+    pub h: i64
 }
 
 impl Size {
-    pub fn of(w: i32, h: i32) -> Size {
+    pub fn of(w: i64, h: i64) -> Size {
         Size {
             w: w,
             h: h

@@ -134,7 +134,7 @@ impl<NM: NoiseMapGenerator, T: Clone> World<NM, T> {
     ///     }
     /// }
     /// ```
-    pub fn generate_chunk(&self, x: i32, y: i32) -> Vec<Vec<T>> {
+    pub fn generate_chunk(&self, x: i64, y: i64) -> Vec<Vec<T>> {
         self.nm.generate_chunk(x, y).iter()
             .map(|row| row.iter().map(|value| match self.tiles.iter().find(|tile| tile.satisfied_by(value)) {
                 Some(tile) => tile.value(),
