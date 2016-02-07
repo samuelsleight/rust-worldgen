@@ -20,126 +20,85 @@
 //!
 //! Once we have a `NoiseMap` we can use a `World` and generate a map
 //! of specific tiles using threshold constraints.
-//!
-//! When you generate a world, it will generate the noisemap inside it,
-//! and then check each value against every tile definition, in order
-//! of their addition to the world.
-//!
-//! The following example will produce the character `~` when the noise value
-//! is less than -0.7, the character `^` when the value is greater than 0.6, and
-//! `,` otherwise.
-//!
-//! ```
-//! # use worldgen::noise::perlin::PerlinNoise;
-//! # use worldgen::noisemap::NoiseMap;
-//! # use worldgen::world::{World, Tile};
-//! # use worldgen::world::tile::Constraint;
-//! # let noise = PerlinNoise::new();
-//! # let nm = NoiseMap::new(noise);
-//! let world = World::new(nm)
-//!     .add(Tile::new('~').when(Constraint::LT(-0.7)))
-//!     .add(Tile::new('^').when(Constraint::GT(0.6)))
-//!     .add(Tile::new(','));
-//! ```
 
-use std::clone::Clone;
+use std::collections::HashMap;
 
-use noisemap::NoiseMapGenerator;
-
+use self::property::Property;
+pub use self::property::Size;
 pub use self::tile::Tile;
 
+#[macro_use]
 pub mod tile;
+
+mod property;
 
 /// The World class. 
 ///
 /// `NM` is the `NoiseMap` class, `T` is the type for each tile. See the
 /// module documentation for for information.
-#[derive(Clone)]
-pub struct World<NM, T> {
-    nm: NM,
-    tiles: Vec<Tile<T>>
+pub struct World<T> {
+    tiles: Vec<Tile<T>>,
+
+    size: Size
 }
 
-impl<NM: NoiseMapGenerator, T: Clone> World<NM, T> {
-    /// Constructs a new world using a given noisemap
-    pub fn new(nm: NM) -> World<NM, T> {
+impl<T> Default for World<T> {
+    fn default() -> World<T> {
         World {
-            nm: nm,
-            tiles: Vec::new()
+            tiles: Vec::new(),
+
+            size: Default::default()
+        }
+    }
+}
+
+impl<T: Clone> World<T> {
+    /// Constructs a new world using a given noisemap
+    pub fn new() -> World<T> {
+        World {
+            tiles: Vec::new(),
+
+            ..Default::default()
         }
     }
 
     /// Add a tile definition to the world
-    pub fn add(self, tile: Tile<T>) -> World<NM, T> {
-        let mut new = self.clone();
+    pub fn add(self, tile: Tile<T>) -> World<T> {
+        let mut new = self;
         new.tiles.push(tile);
         new
     }
-
-    /// Generates the central chunk of the world.
-    ///
-    /// The returned vector is a vector of rows of tiles
-    ///
-    /// This simply calls ```self.generate_chunk(0, 0)```.
-    ///
-    /// # Panics
-    ///
-    /// This function will panic if a value is found which satisfies no tiles
-    /// constraints.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use worldgen::noise::perlin::PerlinNoise;
-    /// # use worldgen::noisemap::NoiseMap;
-    /// # use worldgen::world::{World, Tile};
-    /// # use worldgen::world::tile::Constraint;
-    /// # let noise = PerlinNoise::new();
-    /// # let nm = NoiseMap::new(noise);
-    /// # let world: World<_, char> = World::new(nm);
-    /// for row in world.generate().iter() {
-    ///     for tile in row.iter() {
-    ///         print!("{}", tile);
-    ///     }
-    ///     println!("");
-    /// }
-    /// ```
-    pub fn generate(&self) -> Vec<Vec<T>> {
-        self.generate_chunk(0, 0)
+    
+    /// Set a property on the world
+    pub fn set<P: Property>(self, property: P) -> World<T> {
+        property.set_to(self)
     }
 
-    /// Generates a specific chunk of the world.
-    ///
-    /// # Panics
-    ///
-    /// This function will panic if a value is found which satisfies no tiles
-    /// constraints.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use worldgen::noise::perlin::PerlinNoise;
-    /// # use worldgen::noisemap::NoiseMap;
-    /// # use worldgen::world::{World, Tile};
-    /// # use worldgen::world::tile::Constraint;
-    /// # let noise = PerlinNoise::new();
-    /// # let nm = NoiseMap::new(noise);
-    /// # let world: World<_, char> = World::new(nm);
-    /// for y in (0 .. 5) {
-    ///     for row in world.generate_chunk(0, y).iter() {
-    ///         for tile in row.iter() {
-    ///             print!("{}", tile);
-    ///         }
-    ///         println!("");
-    ///     }
-    /// }
-    /// ```
-    pub fn generate_chunk(&self, x: i64, y: i64) -> Vec<Vec<T>> {
-        self.nm.generate_chunk(x, y).iter()
+    pub fn set_size(self, size: Size) -> World<T> {
+        let mut new = self;
+        new.size = size;
+        new
+    }
+
+    pub fn generate(&self, chunk_x: i64, chunk_y: i64) -> Option<Vec<Vec<T>>> {
+        let mut nms = HashMap::new();
+
+        (chunk_y * self.size.h .. (chunk_y + 1) * self.size.h).map(|y|
+            (chunk_x * self.size.w .. (chunk_x + 1) * self.size.w).map(|x| {
+                match self.tiles.iter().find(|tile| tile.satisfied_by(x, y, self.size, chunk_x, chunk_y, &mut nms)) {
+                    Some(tile) => Some(tile.value()),
+                    None => return None
+                }
+            }
+            ).collect()
+        ).collect()
+    }
+        /*
+        self.nm.generate(x, y).iter()
             .map(|row| row.iter().map(|value| match self.tiles.iter().find(|tile| tile.satisfied_by(value)) {
                 Some(tile) => tile.value(),
                 None => panic!("No tile constraints for value")
             }).collect()
         ).collect()
-    }
+        */
 }

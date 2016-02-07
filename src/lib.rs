@@ -48,13 +48,13 @@
 //!
 //! ```
 //! # use worldgen::noise::perlin::PerlinNoise;
-//! # use worldgen::noisemap::{NoiseMap, NoiseMapGenerator, Size, Step};
+//! # use worldgen::noisemap::{NoiseMap, NoiseMapGenerator, NoiseMapGeneratorBase, Size, Step};
 //! # let noise = PerlinNoise::new();
 //! let nm = NoiseMap::new(noise)
 //!     .set(Size::of(10, 10))
 //!     .set(Step::of(0.05, 0.05));
 //!
-//! let vec = nm.generate();
+//! let vec = nm.generate_chunk(0, 0);
 //! ```
 //!
 //! These can be combined and scaled to your liking:
@@ -68,21 +68,26 @@
 //! let nm = nm1 + nm2 * 5;
 //! ```
 //!
-//! Finally, we can wrap this into a `World`, and produce a vector of specific
+//! Finally, we can wrap these into a `World`, and produce a vector of specific
 //! tiles (represented by anything you want) based on given constraints:
 //!
 //! ```
+//! # #[macro_use] extern crate worldgen;
+//!
 //! # use worldgen::noise::perlin::PerlinNoise;
 //! # use worldgen::noisemap::NoiseMap;
 //! # use worldgen::world::{World, Tile};
-//! # use worldgen::world::tile::Constraint;
+//! # use worldgen::world::tile::{Constraint, ConstraintType};
+//!
+//! # fn main() {
 //! # let noise = PerlinNoise::new();
-//! # let nm = NoiseMap::new(noise);
-//! let world = World::new(nm)
-//!     .add(Tile::new('~').when(Constraint::LT(0.0)))
+//! # let nm = Box::new(NoiseMap::new(noise));
+//! let world = World::new()
+//!     .add(Tile::new('~').when(constraint!(nm, < 0.0)))
 //!     .add(Tile::new(','));
 //!
-//! let tiles = world.generate();
+//! let tiles = world.generate(0, 0);
+//! # }
 //! ```
 //!
 //! For more information on each of the three components, look at the 
@@ -91,52 +96,60 @@
 //! # Full Example
 //!
 //! ```
+//! #[macro_use] extern crate worldgen;
+//!
 //! use worldgen::noise::perlin::PerlinNoise;
-//! use worldgen::noisemap::{NoiseMapGenerator, NoiseMap, Seed, Step, Size};
+//! use worldgen::noisemap::{NoiseMapGenerator, NoiseMapGeneratorBase, NoiseMap, Seed, Step, Size};
 //! use worldgen::world::{World, Tile};
-//! use worldgen::world::tile::Constraint;
+//! use worldgen::world::tile::{Constraint, ConstraintType};
 //!
-//! let noise = PerlinNoise::new();
+//! fn main() {
+//!     let noise = PerlinNoise::new();
 //!
-//! let nm1 = NoiseMap::new(noise)
-//!     .set(Seed::of("Hello?"))
-//!     .set(Step::of(0.005, 0.005))
-//!     .set(Size::of(80, 50));
+//!     let nm1 = NoiseMap::new(noise)
+//!         .set(Seed::of("Hello?"))
+//!         .set(Step::of(0.005, 0.005));
 //!
-//! let nm2 = NoiseMap::new(noise)
-//!     .set(Seed::of("Hello!"))
-//!     .set(Step::of(0.05, 0.05));
+//!     let nm2 = NoiseMap::new(noise)
+//!         .set(Seed::of("Hello!"))
+//!         .set(Step::of(0.05, 0.05));
 //!
-//! let nm = nm1 + nm2 * 3;
+//!     let nm = Box::new(nm1 + nm2 * 3);
 //!
-//! let world = World::new(nm)
+//!     let world = World::new()
+//!         .set(Size::of(80, 50))
 //!     
-//!     // Water
-//!     .add(Tile::new('~')
-//!          .when(Constraint::LT(-0.1)))
+//!         // Water
+//!         .add(Tile::new('~')
+//!             .when(constraint!(nm.clone(), < -0.1)))
 //!
-//!     // Grass
-//!     .add(Tile::new(',')
-//!          .when(Constraint::LT(0.45)))
+//!         // Grass
+//!         .add(Tile::new(',')
+//!             .when(constraint!(nm.clone(), < 0.45)))
 //!
-//!     // Mountains
-//!     .add(Tile::new('^')
-//!          .when(Constraint::GT(0.8)))
+//!         // Mountains
+//!         .add(Tile::new('^')
+//!             .when(constraint!(nm.clone(), > 0.8)))
 //!
-//!     // Hills
-//!     .add(Tile::new('n'));
+//!         // Hills
+//!         .add(Tile::new('n'));
 //!
-//! for row in world.generate().iter() {
-//!     for val in row.iter() {
-//!         print!("{}", val);
+//!     for row in world.generate(0, 0).iter() {
+//!         for val in row.iter() {
+//!             for c in val.iter() {
+//!                 print!("{}", c);
+//!             }
+//!
+//!             println!("");
+//!         }
+//!
+//!         println!("");
 //!     }
-//!
-//!     println!("");
 //! }
 //! ```
 //!
 
-#![feature(plugin)]
+#![feature(plugin, box_syntax)]
 #![plugin(wrapping_macros)]
 
 #[cfg(test)]
@@ -149,10 +162,12 @@ use noise::perlin::PerlinNoise;
 use world::{World, Tile};
 
 #[cfg(test)]
-use world::tile::Constraint;
+use world::tile::{Constraint, ConstraintType};
 
 pub mod noise;
 pub mod noisemap;
+
+#[macro_use]
 pub mod world;
 
 #[test]
@@ -161,35 +176,39 @@ fn it_works() {
 
     let nm1 = NoiseMap::new(noise)
         .set(Seed::of("Hello?"))
-        .set(Step::of(0.005, 0.005))
-        .set(Size::of(80, 50));
+        .set(Step::of(0.005, 0.005));
 
     let nm2 = NoiseMap::new(noise)
         .set(Seed::of("Hello!"))
         .set(Step::of(0.05, 0.05));
 
-    let nm = nm1 + nm2 * 3;
+    let nm = box (nm1 + nm2 * 3);
 
-    let world = World::new(nm)
-        
+    let world = World::new()
+        .set(Size::of(80, 50))
+
         // Water
         .add(Tile::new('~')
-             .when(Constraint::LT(-0.1)))
+             .when(constraint!(nm.clone(), < -0.1)))
 
         // Grass
         .add(Tile::new(',')
-             .when(Constraint::LT(0.45)))
+             .when(constraint!(nm.clone(), < 0.45)))
 
         // Mountains
         .add(Tile::new('^')
-             .when(Constraint::GT(0.8)))
+             .when(constraint!(nm.clone(), > 0.8)))
 
         // Hills
         .add(Tile::new('n'));
 
-    for row in world.generate().iter() {
+    for row in world.generate(0, 0).iter() {
         for val in row.iter() {
-            print!("{}", val);
+            for c in val.iter() {
+                print!("{}", c);
+            }
+
+            println!("");
         }
 
         println!("");

@@ -19,6 +19,7 @@
 use super::PerlinNoise;
 
 use std::default::Default;
+use std::hash::Hasher;
 
 /// A property is an option that can be set on a perlin noise
 /// source.

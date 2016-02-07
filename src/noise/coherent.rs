@@ -39,7 +39,7 @@ fn interpolate(v1: f64, v2: f64, a: f64) -> f64 {
     ((1.0 - a) * v1) + (a * v2)
 }
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, Hash)]
 pub struct CoherentNoise;
 
 impl NoiseProvider for CoherentNoise {
