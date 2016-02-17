@@ -2,7 +2,7 @@
 
 A library for simple generation of noisemaps and maps of objects in Rust.
 
-The full documentation can be found [here](http://www.samuelsleight.co.uk/rust-docs/worldgen).
+The full documentation can be found [here](http://www.samuelsleight.co.uk/rust-docs/worldgen/worldgen).
 
 # Usage
 
