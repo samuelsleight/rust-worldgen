@@ -100,11 +100,15 @@ mod property;
 
 static NEXT_NM_ID: AtomicUsize = ATOMIC_USIZE_INIT;
 
+/// Returns the next unique noisemap id. If implementing a custom noisemap,
+/// use this function to give each instance an id.
 pub fn next_id() -> u64 {
     NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
 }
 
-/// Base trait for noise maps.
+/// Base trait for noise maps. This trait containts functions relevent to
+/// the actual map generation, and is all that is required for constraints
+/// to generate a world.
 ///
 /// `NoiseMap`, `ScaledNoiseMap`, and `NoiseMapCombination` all implement
 /// this trait.
@@ -131,15 +135,23 @@ pub trait NoiseMapGeneratorBase {
     /// ```
     fn generate_chunk(&self, x: i64, y: i64) -> Vec<Vec<f64>>;
 
+    /// Generate a chunk with a given size instead of the noisemap's size.
+    ///
+    /// This is used when generating a world.
     fn generate_sized_chunk(&self, size: Size, x: i64, y: i64) -> Vec<Vec<f64>>;
 
+    /// Return the unique id of the noisemap.
     fn id(&self) -> u64;
 }
 
+/// This trait contains functions used for initially creating and combining noisemaps.
+/// (The ```Mul``` requirement is used for scaling a noisemap)
 pub trait NoiseMapGenerator : NoiseMapGeneratorBase + Clone + Mul<i64, Output=ScaledNoiseMap<Self>> {
     /// Set a property on the noise map.
     fn set<P: Property>(self, property: P) -> Self where Self: Sized;
 
+    /// These individual set functions are called by the relevant properties, and
+    /// while can be called manually, it is nicer to use the generic set function.
     fn set_size(self, size: Size) -> Self where Self: Sized;
     fn set_seed(self, seed: Seed) -> Self where Self: Sized;
     fn set_step(self, step: Step) -> Self where Self: Sized;
