@@ -101,6 +101,10 @@ mod property;
 
 static NEXT_NM_ID: AtomicUsize = ATOMIC_USIZE_INIT;
 
+pub fn next_id() -> u64 {
+    NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
+}
+
 /// Base trait for noise maps.
 ///
 /// `NoiseMap`, `ScaledNoiseMap`, and `NoiseMapCombination` all implement
@@ -212,7 +216,7 @@ impl<T: NoiseProvider> NoiseMap<T> {
         NoiseMap {
             noise: noise,
 
-            id: NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64,
+            id: next_id(),
 
             ..Default::default()
         }
@@ -313,13 +317,13 @@ impl<T1: NoiseMapGenerator, T2: NoiseMapGenerator> NoiseMapGeneratorBase for Noi
 
     fn generate_sized_chunk(&self, size: Size, x: i64, y: i64) -> Vec<Vec<f64>> {
         if self.outer {
-            self.nm1.generate_sized_chunk(size, x, y).iter()
-                .zip(self.nm2.generate_sized_chunk(size, x, y).iter())
-                .map(|(lr, rr)| lr.iter().zip(rr.iter()).map(|(lv, rv)| (lv + rv) / self.total_scale as f64).collect()).collect()
+            let nm1_map = self.nm1.generate_sized_chunk(size, x, y);
+            let nm2_map = self.nm2.generate_sized_chunk(size, x, y);
+            nm1_map.iter().zip(nm2_map.iter()).map(|(lr, rr)| lr.iter().zip(rr.iter()).map(|(lv, rv)| (lv + rv) / self.total_scale as f64).collect()).collect()
         } else {
-            self.nm1.generate_sized_chunk(size, x, y).iter()
-                .zip(self.nm2.generate_sized_chunk(size, x, y).iter())
-                .map(|(lr, rr)| lr.iter().zip(rr.iter()).map(|(lv, rv)| lv + rv).collect()).collect()
+            let nm1_map = self.nm1.generate_sized_chunk(size, x, y);
+            let nm2_map = self.nm2.generate_sized_chunk(size, x, y);
+            nm1_map.iter().zip(nm2_map.iter()).map(|(lr, rr)| lr.iter().zip(rr.iter()).map(|(lv, rv)| lv + rv).collect()).collect()
         }
     }
 
@@ -360,7 +364,7 @@ impl<T> Mul<i64> for NoiseMap<T> {
             nm: self,
             scale: scale,
 
-            id: NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
+            id: next_id(),
         }
     }
 }
@@ -373,7 +377,7 @@ impl<T> Mul<i64> for ScaledNoiseMap<T> {
             nm: self.nm,
             scale: self.scale * scale,
 
-            id: NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
+            id: next_id(),
         }
     }
 }
@@ -389,7 +393,7 @@ impl<T1: NoiseProvider, T2: NoiseProvider> Add<NoiseMap<T2>> for NoiseMap<T1> {
             outer: true,
             total_scale: 2,
 
-            id: NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
+            id: next_id(),
         }.set(cmp::max(self.get_size(), rhs.get_size()))
     }
 }
@@ -426,7 +430,7 @@ impl<T1: NoiseMapGenerator, T2: NoiseProvider> Add<NoiseMap<T2>> for ScaledNoise
             outer: true,
             total_scale: scale + 1,
 
-            id: NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
+            id: next_id(),
         }.set(cmp::max(s1, s2))
     }
 }
@@ -448,7 +452,7 @@ impl<T1: NoiseMapGenerator, T2: NoiseMapGenerator> Add<ScaledNoiseMap<T2>> for S
             outer: true,
             total_scale: scale1 + scale2,
 
-            id: NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
+            id: next_id(),
         }.set(cmp::max(s1, s2))
     }
 }
@@ -477,7 +481,7 @@ impl<T: NoiseProvider, T1: NoiseMapGenerator, T2: NoiseMapGenerator> Add<NoiseMa
             outer: true,
             total_scale: 1 + scale,
 
-            id: NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
+            id: next_id(),
         }.set(cmp::max(s1, s2))
     }
 }
@@ -501,7 +505,7 @@ impl<T: NoiseMapGenerator, T1: NoiseMapGenerator, T2: NoiseMapGenerator> Add<Sca
             outer: true,
             total_scale: scale1 + scale2,
 
-            id: NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
+            id: next_id(),
         }.set(cmp::max(s1, s2))
     }
 }
@@ -518,6 +522,7 @@ impl<L1: NoiseMapGenerator, L2: NoiseMapGenerator, R1: NoiseMapGenerator, R2: No
 
         let inner1 = self.inner();
         let inner2 = rhs.inner();
+
         NoiseMapCombination {
             nm1: inner1,
             nm2: inner2,
@@ -525,7 +530,7 @@ impl<L1: NoiseMapGenerator, L2: NoiseMapGenerator, R1: NoiseMapGenerator, R2: No
             outer: true,
             total_scale: scale1 + scale2,
 
-            id: NEXT_NM_ID.fetch_add(1, Ordering::SeqCst) as u64
+            id: next_id(),
         }.set(cmp::max(s1, s2))
     }
 }

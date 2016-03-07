@@ -1,7 +1,7 @@
 [package]
 name = "worldgen"
 description = "Noisemap and world generation library"
-version = "0.3.1"
+version = "0.3.2"
 readme = "README.md"
 authors = ["Samuel Sleight <samuel.sleight@gmail.com>"]
 repository = "https://github.com/YeyaSwizaw/rust-worldgen"

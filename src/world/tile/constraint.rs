@@ -58,10 +58,10 @@ impl Constraint {
         let id = self.nm.id();
 
         if !nms.contains_key(&id) {
-            println!("Generating id {}", id);
+            nms.insert(id, self.nm.generate_sized_chunk(size, chunk_x, chunk_y));
         }
 
-        let nm = &nms.entry(id).or_insert(self.nm.generate_sized_chunk(size, chunk_x, chunk_y));
+        let nm = nms.get(&id).unwrap();
 
         match self.constraint {
             ConstraintType::LT(threshold) => nm[y as usize][x as usize] < threshold,

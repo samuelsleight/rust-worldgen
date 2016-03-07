@@ -93,12 +93,4 @@ impl<T: Clone> World<T> {
             ).collect()
         ).collect()
     }
-        /*
-        self.nm.generate(x, y).iter()
-            .map(|row| row.iter().map(|value| match self.tiles.iter().find(|tile| tile.satisfied_by(value)) {
-                Some(tile) => tile.value(),
-                None => panic!("No tile constraints for value")
-            }).collect()
-        ).collect()
-        */
 }
