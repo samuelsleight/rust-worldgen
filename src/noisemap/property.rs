@@ -16,7 +16,7 @@
 //  limitations under the License.
 //////////////////////////////////////////////////////////////////////////////
 
-use super::NoiseMap;
+use super::NoiseMapGenerator;
 
 use std::cmp::{PartialOrd, Ord, Ordering};
 use std::default::Default;
@@ -24,7 +24,7 @@ use std::hash::{Hash, Hasher, SipHasher};
 
 /// A property is an option that can be set on a noise map.
 pub trait Property : Default + Copy {
-    fn set_to<T>(self, nm: NoiseMap<T>) -> NoiseMap<T>;
+    fn set_to<NM: NoiseMapGenerator>(self, nm: NM) -> NM;
 }
 
 /// Sets the seed that is used for generating the noise.
@@ -53,7 +53,7 @@ impl Seed {
 }
 
 impl Property for Seed {
-    fn set_to<T>(self, nm: NoiseMap<T>) -> NoiseMap<T> {
+    fn set_to<NM: NoiseMapGenerator>(self, nm: NM) -> NM {
         nm.set_seed(self)
     }
 }
@@ -79,7 +79,7 @@ impl Step {
 }
 
 impl Property for Step {
-    fn set_to<T>(self, nm: NoiseMap<T>) -> NoiseMap<T> {
+    fn set_to<NM: NoiseMapGenerator>(self, nm: NM) -> NM {
         nm.set_step(self)
     }
 }
@@ -106,7 +106,7 @@ impl Size {
 }
 
 impl Property for Size {
-    fn set_to<T>(self, nm: NoiseMap<T>) -> NoiseMap<T> {
+    fn set_to<NM: NoiseMapGenerator>(self, nm: NM) -> NM {
         nm.set_size(self)
     }
 }

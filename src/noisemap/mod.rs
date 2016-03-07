@@ -94,8 +94,7 @@ use std::ops::{Add, Mul};
 use std::cmp;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 
-pub use self::property::{Seed, Step, Size};
-use self::property::Property;
+pub use self::property::{Seed, Step, Size, Property};
 
 mod property;
 
@@ -137,9 +136,13 @@ pub trait NoiseMapGeneratorBase {
     fn id(&self) -> u64;
 }
 
-pub trait NoiseMapGenerator : NoiseMapGeneratorBase + Clone {
+pub trait NoiseMapGenerator : NoiseMapGeneratorBase + Clone + Mul<i64, Output=ScaledNoiseMap<Self>> {
     /// Set a property on the noise map.
     fn set<P: Property>(self, property: P) -> Self where Self: Sized;
+
+    fn set_size(self, size: Size) -> Self where Self: Sized;
+    fn set_seed(self, seed: Seed) -> Self where Self: Sized;
+    fn set_step(self, step: Step) -> Self where Self: Sized;
     
     /// Returns the size of the noise map.
     fn get_size(&self) -> Size where Self: Sized;
@@ -242,6 +245,8 @@ impl<T: NoiseProvider> NoiseMapGeneratorBase for NoiseMap<T> {
 }
 
 impl<T: NoiseProvider> NoiseMapGenerator for NoiseMap<T> {
+    // type ScaledInner = NoiseMap<T>;
+
     fn set<P: Property>(self, property: P) -> NoiseMap<T> {
         property.set_to(self)
     }
@@ -249,9 +254,7 @@ impl<T: NoiseProvider> NoiseMapGenerator for NoiseMap<T> {
     fn get_size(&self) -> Size {
         self.size
     }
-}
 
-impl<T> NoiseMap<T> {
     fn set_seed(self, seed: Seed) -> NoiseMap<T> {
         NoiseMap {
             seed: seed,
@@ -290,6 +293,8 @@ impl<T: NoiseMapGenerator> NoiseMapGeneratorBase for ScaledNoiseMap<T> {
 }
 
 impl<T: NoiseMapGenerator> NoiseMapGenerator for ScaledNoiseMap<T> {
+    // type ScaledInner = T;
+
     fn set<P: Property>(self, property: P) -> ScaledNoiseMap<T> {
         ScaledNoiseMap {
             nm: self.nm.set(property),
@@ -300,10 +305,31 @@ impl<T: NoiseMapGenerator> NoiseMapGenerator for ScaledNoiseMap<T> {
     fn get_size(&self) -> Size {
         self.nm.get_size()
     }
+
+    fn set_seed(self, seed: Seed) -> ScaledNoiseMap<T> {
+        self.set(seed)
+    }
+
+    fn set_step(self, step: Step) -> ScaledNoiseMap<T> {
+        self.set(step)
+    }
+
+    fn set_size(self, size: Size) -> ScaledNoiseMap<T> {
+        self.set(size)
+    }
 }
 
 impl<T> ScaledNoiseMap<T> {
-    fn scale(&self) -> i64 {
+    pub fn new(nm: T, scale: i64) -> ScaledNoiseMap<T> {
+        ScaledNoiseMap {
+            nm: nm,
+            scale: scale,
+
+            id: next_id()
+        }
+    }
+
+    pub fn scale(&self) -> i64 {
         self.scale
     }
 }
@@ -333,6 +359,8 @@ impl<T1: NoiseMapGenerator, T2: NoiseMapGenerator> NoiseMapGeneratorBase for Noi
 }
 
 impl<T1: NoiseMapGenerator, T2: NoiseMapGenerator> NoiseMapGenerator for NoiseMapCombination<T1, T2> {
+    // type ScaledInner = NoiseMapCombination<T1, T2>;
+
     fn set<P: Property>(self, property: P) -> NoiseMapCombination<T1, T2> {
         NoiseMapCombination {
             nm1: self.nm1.set(property),
@@ -343,6 +371,18 @@ impl<T1: NoiseMapGenerator, T2: NoiseMapGenerator> NoiseMapGenerator for NoiseMa
 
     fn get_size(&self) -> Size {
         self.nm1.get_size()
+    }
+
+    fn set_seed(self, seed: Seed) -> NoiseMapCombination<T1, T2> {
+        self.set(seed)
+    }
+
+    fn set_step(self, step: Step) -> NoiseMapCombination<T1, T2> {
+        self.set(step)
+    }
+
+    fn set_size(self, size: Size) -> NoiseMapCombination<T1, T2> {
+        self.set(size)
     }
 }
 
@@ -355,30 +395,27 @@ impl<T1, T2> NoiseMapCombination<T1, T2> {
     }
 }
 
-
-impl<T> Mul<i64> for NoiseMap<T> {
+impl<T: NoiseProvider> Mul<i64> for NoiseMap<T> {
     type Output = ScaledNoiseMap<NoiseMap<T>>;
 
     fn mul(self, scale: i64) -> ScaledNoiseMap<NoiseMap<T>> {
-        ScaledNoiseMap {
-            nm: self,
-            scale: scale,
-
-            id: next_id(),
-        }
+        ScaledNoiseMap::new(self, scale)
     }
 }
 
-impl<T> Mul<i64> for ScaledNoiseMap<T> {
-    type Output = ScaledNoiseMap<T>;
+impl<T: NoiseMapGenerator> Mul<i64> for ScaledNoiseMap<T> {
+    type Output = ScaledNoiseMap<ScaledNoiseMap<T>>;
 
-    fn mul(self, scale: i64) -> ScaledNoiseMap<T> {
-        ScaledNoiseMap {
-            nm: self.nm,
-            scale: self.scale * scale,
+    fn mul(self, scale: i64) -> ScaledNoiseMap<ScaledNoiseMap<T>> {
+        ScaledNoiseMap::new(self, scale)
+    }
+}
 
-            id: next_id(),
-        }
+impl<T1: NoiseMapGenerator, T2: NoiseMapGenerator> Mul<i64> for NoiseMapCombination<T1, T2> {
+    type Output = ScaledNoiseMap<NoiseMapCombination<T1, T2>>;
+
+    fn mul(self, scale: i64) -> ScaledNoiseMap<NoiseMapCombination<T1, T2>> {
+        ScaledNoiseMap::new(self, scale)
     }
 }
 
