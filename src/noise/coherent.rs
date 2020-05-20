@@ -23,12 +23,12 @@
 use super::NoiseProvider;
 
 fn generate_random_value(x: i32, y: i32, seed: i32) -> f64 {
-    let m = wrapping! {
-        let n = ((x * 157) + (y * 31337) + (seed * 2633)) & 0x7fffffff;
+    let m = {
+        let n = ((x.wrapping_mul(157)).wrapping_add(y.wrapping_mul(31337)).wrapping_add(seed.wrapping_mul(2633))) & 0x7fffffff;
         (n << 13) ^ n
     };
 
-    1.0 - (wrapping! { ((m * (m * m * 15731 + 789221) + 1376312579) & 0x7fffffff) as f64 } / 1073741824.0)
+    1.0 - ((((m.wrapping_mul(m.wrapping_mul(m).wrapping_mul(15731).wrapping_add(789221)).wrapping_add(1376312579)) & 0x7fffffff) as f64) / 1073741824.0)
 }
 
 fn s_curve(a: f64) -> f64 {

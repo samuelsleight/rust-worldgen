@@ -43,7 +43,7 @@
 //! ```
 //!
 //! This on its own is not very useful or convenient, however by plugging this
-//! into a `NoiseMap` (from the `noisemap` module) we can generate a field of 
+//! into a `NoiseMap` (from the `noisemap` module) we can generate a field of
 //! continuous noise:
 //!
 //! ```
@@ -90,7 +90,7 @@
 //! # }
 //! ```
 //!
-//! For more information on each of the three components, look at the 
+//! For more information on each of the three components, look at the
 //! documentation of the relevant module.
 //!
 //! # Full Example
@@ -118,7 +118,7 @@
 //!
 //!     let world = World::new()
 //!         .set(Size::of(80, 50))
-//!     
+//!
 //!         // Water
 //!         .add(Tile::new('~')
 //!             .when(constraint!(nm.clone(), < -0.1)))
@@ -148,9 +148,6 @@
 //! }
 //! ```
 //!
-
-#![feature(plugin, box_syntax)]
-#![plugin(wrapping_macros)]
 
 #[cfg(test)]
 use noisemap::{NoiseMap, NoiseMapGenerator, Seed, Step, Size};
@@ -182,7 +179,7 @@ fn it_works() {
         .set(Seed::of("Hello!"))
         .set(Step::of(0.05, 0.05));
 
-    let nm = box (nm1 + nm2 * 3);
+    let nm = Box::new(nm1 + nm2 * 3);
 
     let world = World::new()
         .set(Size::of(80, 50))
@@ -197,7 +194,7 @@ fn it_works() {
 
         // Mountains
         .add(Tile::new('^')
-             .when(constraint!(nm.clone(), > 0.8)))
+             .when(constraint!(nm, > 0.8)))
 
         // Hills
         .add(Tile::new('n'));
@@ -208,9 +205,9 @@ fn it_works() {
                 print!("{}", c);
             }
 
-            println!("");
+            println!();
         }
 
-        println!("");
+        println!();
     }
 }

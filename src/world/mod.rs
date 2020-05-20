@@ -32,7 +32,7 @@ pub mod tile;
 
 mod property;
 
-/// The World class. 
+/// The World class.
 ///
 /// `NM` is the `NoiseMap` class, `T` is the type for each tile. See the
 /// module documentation for for information.
@@ -68,7 +68,7 @@ impl<T: Clone> World<T> {
         new.tiles.push(tile);
         new
     }
-    
+
     /// Set a property on the world
     pub fn set<P: Property>(self, property: P) -> World<T> {
         property.set_to(self)
@@ -87,7 +87,7 @@ impl<T: Clone> World<T> {
             (chunk_x * self.size.w .. (chunk_x + 1) * self.size.w).map(|x| {
                 match self.tiles.iter().find(|tile| tile.satisfied_by(x, y, self.size, chunk_x, chunk_y, &mut nms)) {
                     Some(tile) => Some(tile.value()),
-                    None => return None
+                    None => None
                 }
             }
             ).collect()

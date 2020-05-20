@@ -20,7 +20,8 @@ use super::NoiseMapGenerator;
 
 use std::cmp::{PartialOrd, Ord, Ordering};
 use std::default::Default;
-use std::hash::{Hash, Hasher, SipHasher};
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 
 /// A property is an option that can be set on a noise map.
 pub trait Property : Default + Copy {
@@ -37,17 +38,17 @@ impl Seed {
     /// Sets the seed to an exact integer value.
     pub fn of_value(value: u64) -> Seed {
         Seed {
-            value: value
+            value
         }
     }
 
     /// Sets the seed to the hash of whatever is provided.
     pub fn of<T: Hash>(value: T) -> Seed {
-        let mut hasher = SipHasher::new();
+        let mut hasher = DefaultHasher::new();
         value.hash(&mut hasher);
 
         Seed {
-            value: hasher.finish() 
+            value: hasher.finish()
         }
     }
 }
@@ -58,7 +59,7 @@ impl Property for Seed {
     }
 }
 
-/// Sets the increment in x and y for each coordinate in the 
+/// Sets the increment in x and y for each coordinate in the
 /// noise map.
 ///
 /// The default values of this are 0, so if you do not set this then
@@ -72,8 +73,8 @@ pub struct Step {
 impl Step {
     pub fn of(x: f64, y: f64) -> Step {
         Step {
-            x: x,
-            y: y
+            x,
+            y
         }
     }
 }
@@ -99,8 +100,8 @@ pub struct Size {
 impl Size {
     pub fn of(w: i64, h: i64) -> Size {
         Size {
-            w: w,
-            h: h
+            w,
+            h
         }
     }
 }

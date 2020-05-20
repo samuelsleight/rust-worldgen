@@ -7,6 +7,4 @@ authors = ["Samuel Sleight <samuel.sleight@gmail.com>"]
 repository = "https://github.com/YeyaSwizaw/rust-worldgen"
 documentation = "http://www.samuelsleight.co.uk/rust-docs/worldgen/worldgen"
 license = "Apache-2.0"
-
-[dependencies]
-wrapping_macros = "0.4.5"
+edition = "2018"

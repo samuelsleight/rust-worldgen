@@ -19,7 +19,6 @@
 use super::PerlinNoise;
 
 use std::default::Default;
-use std::hash::Hasher;
 
 /// A property is an option that can be set on a perlin noise
 /// source.
@@ -39,7 +38,7 @@ pub struct Octaves {
 impl Octaves {
     pub fn of(value: u32) -> Octaves {
         Octaves {
-            value: value
+            value
         }
     }
 }
@@ -71,7 +70,7 @@ pub struct Frequency {
 impl Frequency {
     pub fn of(value: f64) -> Frequency {
         Frequency {
-            value: value
+            value
         }
     }
 }
@@ -102,7 +101,7 @@ pub struct Persistence {
 impl Persistence {
     pub fn of(value: f64) -> Persistence {
         Persistence {
-            value: value
+            value
         }
     }
 }
@@ -133,7 +132,7 @@ pub struct Lacunarity {
 impl Lacunarity {
     pub fn of(value: f64) -> Lacunarity {
         Lacunarity {
-            value: value
+            value
         }
     }
 }
