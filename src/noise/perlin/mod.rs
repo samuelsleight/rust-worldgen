@@ -22,7 +22,7 @@
 //! of coherent noise (known as octaves).
 //!
 //! The perlin noise source has a number of different properties that can
-//! be customised: the number of octaves, and the frequency, persistence, 
+//! be customised: the number of octaves, and the frequency, persistence,
 //! and lacunarity of the noise.
 
 use std::default::Default;
@@ -77,28 +77,28 @@ impl PerlinNoise {
 
     fn set_octaves(self, octaves: Octaves) -> PerlinNoise {
         PerlinNoise {
-            octaves: octaves,
+            octaves,
             ..self
         }
     }
 
     fn set_frequency(self, freq: Frequency) -> PerlinNoise {
         PerlinNoise {
-            freq: freq,
+            freq,
             ..self
         }
     }
 
     fn set_persistence(self, pers: Persistence) -> PerlinNoise {
         PerlinNoise {
-            pers: pers,
+            pers,
             ..self
         }
     }
 
     fn set_lacunarity(self, lacu: Lacunarity) -> PerlinNoise {
         PerlinNoise {
-            lacu: lacu,
+            lacu,
             ..self
         }
     }

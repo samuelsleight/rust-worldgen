@@ -83,7 +83,7 @@
 //! ```
 //!
 //! A noise map is essentially an infinite plane of numbers, and the `generate`
-//! method produces the central chunk of the size specified. You can use the 
+//! method produces the central chunk of the size specified. You can use the
 //! `generate_chunk` method to generate specific chunks and produce infinite
 //! maps.
 
@@ -92,13 +92,13 @@ use noise::NoiseProvider;
 use std::default::Default;
 use std::ops::{Add, Mul};
 use std::cmp;
-use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 pub use self::property::{Seed, Step, Size, Property};
 
 mod property;
 
-static NEXT_NM_ID: AtomicUsize = ATOMIC_USIZE_INIT;
+static NEXT_NM_ID: AtomicUsize = AtomicUsize::new(0);
 
 /// Returns the next unique noisemap id. If implementing a custom noisemap,
 /// use this function to give each instance an id.
@@ -155,14 +155,14 @@ pub trait NoiseMapGenerator : NoiseMapGeneratorBase + Clone + Mul<i64, Output=Sc
     fn set_size(self, size: Size) -> Self where Self: Sized;
     fn set_seed(self, seed: Seed) -> Self where Self: Sized;
     fn set_step(self, step: Step) -> Self where Self: Sized;
-    
+
     /// Returns the size of the noise map.
     fn get_size(&self) -> Size where Self: Sized;
 }
 
 /// The standard noise map.
 ///
-/// This is the base noise map, and is created by wrapping a 
+/// This is the base noise map, and is created by wrapping a
 /// noise source. It has properties that allow the setting of the
 /// generation seed, the size of the generated chunks, and the coordinate
 /// scale.
@@ -173,7 +173,7 @@ pub struct NoiseMap<T> {
     size: Size,
 
     noise: T,
-    
+
     id: u64
 }
 
@@ -229,7 +229,7 @@ impl<T: NoiseProvider> NoiseMap<T> {
     /// Construct a new noise map with the default properties.
     pub fn new(noise: T) -> NoiseMap<T> {
         NoiseMap {
-            noise: noise,
+            noise,
 
             id: next_id(),
 
@@ -269,21 +269,21 @@ impl<T: NoiseProvider> NoiseMapGenerator for NoiseMap<T> {
 
     fn set_seed(self, seed: Seed) -> NoiseMap<T> {
         NoiseMap {
-            seed: seed,
+            seed,
             ..self
         }
     }
 
     fn set_step(self, step: Step) -> NoiseMap<T> {
         NoiseMap {
-            step: step,
+            step,
             ..self
         }
     }
 
     fn set_size(self, size: Size) -> NoiseMap<T> {
         NoiseMap {
-            size: size,
+            size,
             ..self
         }
     }
@@ -334,8 +334,8 @@ impl<T: NoiseMapGenerator> NoiseMapGenerator for ScaledNoiseMap<T> {
 impl<T> ScaledNoiseMap<T> {
     pub fn new(nm: T, scale: i64) -> ScaledNoiseMap<T> {
         ScaledNoiseMap {
-            nm: nm,
-            scale: scale,
+            nm,
+            scale,
 
             id: next_id()
         }

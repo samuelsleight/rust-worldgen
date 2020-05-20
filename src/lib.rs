@@ -196,7 +196,7 @@ fn it_works() {
 
         // Mountains
         .add(Tile::new('^')
-             .when(constraint!(nm.clone(), > 0.8)))
+             .when(constraint!(nm, > 0.8)))
 
         // Hills
         .add(Tile::new('n'));
@@ -207,9 +207,9 @@ fn it_works() {
                 print!("{}", c);
             }
 
-            println!("");
+            println!();
         }
 
-        println!("");
+        println!();
     }
 }

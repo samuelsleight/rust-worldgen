@@ -23,11 +23,11 @@ use ::world::Size;
 
 #[derive(Copy, Clone)]
 pub enum ConstraintType {
-    /// This constraint is satisfied when the noise value is 
+    /// This constraint is satisfied when the noise value is
     /// lower than the given threshold.
     LT(f64),
 
-    /// This constraint is satisfied when the noise value is 
+    /// This constraint is satisfied when the noise value is
     /// greater than the given threshold.
     GT(f64)
 }
@@ -35,7 +35,7 @@ pub enum ConstraintType {
 /// A constraint that limits when a tile should be chosen for
 /// the generated world.
 pub struct Constraint {
-    nm: Box<NoiseMapGeneratorBase>,
+    nm: Box<dyn NoiseMapGeneratorBase>,
     constraint: ConstraintType
 }
 
@@ -46,10 +46,10 @@ macro_rules! constraint {
 }
 
 impl Constraint {
-    pub fn new(nm: Box<NoiseMapGeneratorBase>, constraint: ConstraintType) -> Constraint {
+    pub fn new(nm: Box<dyn NoiseMapGeneratorBase>, constraint: ConstraintType) -> Constraint {
         Constraint {
-            nm: nm,
-            constraint: constraint
+            nm,
+            constraint
         }
     }
 
@@ -57,11 +57,7 @@ impl Constraint {
     pub fn satisfied_by(&self, x: i64, y: i64, size: Size, chunk_x: i64, chunk_y: i64, nms: &mut HashMap<u64, Vec<Vec<f64>>>) -> bool {
         let id = self.nm.id();
 
-        if !nms.contains_key(&id) {
-            nms.insert(id, self.nm.generate_sized_chunk(size, chunk_x, chunk_y));
-        }
-
-        let nm = nms.get(&id).unwrap();
+        let nm = nms.entry(id).or_insert_with(|| self.nm.generate_sized_chunk(size, chunk_x, chunk_y));
 
         match self.constraint {
             ConstraintType::LT(threshold) => nm[y as usize][x as usize] < threshold,
