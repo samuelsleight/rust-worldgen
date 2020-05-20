@@ -149,8 +149,6 @@
 //! ```
 //!
 
-#![feature(box_syntax)]
-
 #[cfg(test)]
 use noisemap::{NoiseMap, NoiseMapGenerator, Seed, Step, Size};
 
@@ -181,7 +179,7 @@ fn it_works() {
         .set(Seed::of("Hello!"))
         .set(Step::of(0.05, 0.05));
 
-    let nm = box (nm1 + nm2 * 3);
+    let nm = Box::new(nm1 + nm2 * 3);
 
     let world = World::new()
         .set(Size::of(80, 50))
