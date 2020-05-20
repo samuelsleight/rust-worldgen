@@ -43,7 +43,7 @@
 //! ```
 //!
 //! This on its own is not very useful or convenient, however by plugging this
-//! into a `NoiseMap` (from the `noisemap` module) we can generate a field of 
+//! into a `NoiseMap` (from the `noisemap` module) we can generate a field of
 //! continuous noise:
 //!
 //! ```
@@ -90,7 +90,7 @@
 //! # }
 //! ```
 //!
-//! For more information on each of the three components, look at the 
+//! For more information on each of the three components, look at the
 //! documentation of the relevant module.
 //!
 //! # Full Example
@@ -118,7 +118,7 @@
 //!
 //!     let world = World::new()
 //!         .set(Size::of(80, 50))
-//!     
+//!
 //!         // Water
 //!         .add(Tile::new('~')
 //!             .when(constraint!(nm.clone(), < -0.1)))
@@ -149,8 +149,7 @@
 //! ```
 //!
 
-#![feature(plugin, box_syntax)]
-#![plugin(wrapping_macros)]
+#![feature(box_syntax)]
 
 #[cfg(test)]
 use noisemap::{NoiseMap, NoiseMapGenerator, Seed, Step, Size};
