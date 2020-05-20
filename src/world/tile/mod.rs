@@ -18,7 +18,7 @@
 
 use std::collections::HashMap;
 
-use ::world::Size;
+use crate::world::Size;
 pub use self::constraint::{Constraint, ConstraintType};
 
 #[macro_use]
@@ -34,7 +34,7 @@ impl<T: Clone> Tile<T> {
     /// Construct a new tile represented by the given object.
     pub fn new(value: T) -> Tile<T> {
         Tile {
-            value: value,
+            value,
             constraints: Vec::new()
         }
     }
@@ -52,7 +52,7 @@ impl<T: Clone> Tile<T> {
         self.value.clone()
     }
 
-    /// Returns true if the given value would satisfy all of this tile's 
+    /// Returns true if the given value would satisfy all of this tile's
     /// constraints.
     pub fn satisfied_by(&self, x: i64, y: i64, size: Size, chunk_x: i64, chunk_y: i64, nms: &mut HashMap<u64, Vec<Vec<f64>>>) -> bool {
         self.constraints.iter().all(|constraint| constraint.satisfied_by(x, y, size, chunk_x, chunk_y, nms))

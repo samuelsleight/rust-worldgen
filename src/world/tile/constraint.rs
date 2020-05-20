@@ -18,8 +18,8 @@
 
 use std::collections::HashMap;
 
-use ::noisemap::NoiseMapGeneratorBase;
-use ::world::Size;
+use crate::noisemap::NoiseMapGeneratorBase;
+use crate::world::Size;
 
 #[derive(Copy, Clone)]
 pub enum ConstraintType {

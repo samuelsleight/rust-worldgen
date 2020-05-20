@@ -87,7 +87,7 @@
 //! `generate_chunk` method to generate specific chunks and produce infinite
 //! maps.
 
-use noise::NoiseProvider;
+use crate::noise::NoiseProvider;
 
 use std::default::Default;
 use std::ops::{Add, Mul};
