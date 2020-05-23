@@ -59,6 +59,9 @@ impl Constraint {
 
         let nm = nms.entry(id).or_insert_with(|| self.nm.generate_sized_chunk(size, chunk_x, chunk_y));
 
+        let x = (x as i64) % size.w;
+        let y = (y as i64) % size.h;
+
         match self.constraint {
             ConstraintType::LT(threshold) => nm[y as usize][x as usize] < threshold,
             ConstraintType::GT(threshold) => nm[y as usize][x as usize] > threshold
