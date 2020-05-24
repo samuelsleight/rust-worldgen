@@ -10,7 +10,7 @@ To use this library, simply add the following line to your Cargo.toml
 dependencies section:
 
 ```
-worldgen = "0.5.1"
+worldgen = "0.5.2"
 ```
 
 # Introduction
