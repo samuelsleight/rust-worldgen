@@ -53,14 +53,14 @@ impl Constraint {
         }
     }
 
-    /// Returns true is the given value would satisfy this constraint.
+    /// Returns true if the given value would satisfy this constraint.
     pub fn satisfied_by(&self, x: i64, y: i64, size: Size, chunk_x: i64, chunk_y: i64, nms: &mut HashMap<u64, Vec<Vec<f64>>>) -> bool {
         let id = self.nm.id();
 
         let nm = nms.entry(id).or_insert_with(|| self.nm.generate_sized_chunk(size, chunk_x, chunk_y));
 
-        let x = (x as i64) % size.w;
-        let y = (y as i64) % size.h;
+        let x = (x as i64).rem_euclid(size.w);
+        let y = (y as i64).rem_euclid(size.h);
 
         match self.constraint {
             ConstraintType::LT(threshold) => nm[y as usize][x as usize] < threshold,
