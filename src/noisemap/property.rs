@@ -18,28 +18,26 @@
 
 use super::NoiseMapGenerator;
 
-use std::cmp::{PartialOrd, Ord, Ordering};
+use std::cmp::{Ord, Ordering, PartialOrd};
+use std::collections::hash_map::DefaultHasher;
 use std::default::Default;
 use std::hash::{Hash, Hasher};
-use std::collections::hash_map::DefaultHasher;
 
 /// A property is an option that can be set on a noise map.
-pub trait Property : Default + Copy {
+pub trait Property: Default + Copy {
     fn set_to<NM: NoiseMapGenerator>(self, nm: NM) -> NM;
 }
 
 /// Sets the seed that is used for generating the noise.
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Seed {
-    pub value: u64
+    pub value: u64,
 }
 
 impl Seed {
     /// Sets the seed to an exact integer value.
     pub fn of_value(value: u64) -> Seed {
-        Seed {
-            value
-        }
+        Seed { value }
     }
 
     /// Sets the seed to the hash of whatever is provided.
@@ -48,7 +46,7 @@ impl Seed {
         value.hash(&mut hasher);
 
         Seed {
-            value: hasher.finish()
+            value: hasher.finish(),
         }
     }
 }
@@ -67,15 +65,12 @@ impl Property for Seed {
 #[derive(Default, Copy, Clone, Debug, PartialEq)]
 pub struct Step {
     pub x: f64,
-    pub y: f64
+    pub y: f64,
 }
 
 impl Step {
     pub fn of(x: f64, y: f64) -> Step {
-        Step {
-            x,
-            y
-        }
+        Step { x, y }
     }
 }
 
@@ -94,15 +89,12 @@ impl Property for Step {
 #[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Size {
     pub w: i64,
-    pub h: i64
+    pub h: i64,
 }
 
 impl Size {
     pub fn of(w: i64, h: i64) -> Size {
-        Size {
-            w,
-            h
-        }
+        Size { w, h }
     }
 }
 

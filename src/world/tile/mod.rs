@@ -18,8 +18,8 @@
 
 use std::collections::HashMap;
 
-use crate::world::Size;
 pub use self::constraint::{Constraint, ConstraintType};
+use crate::world::Size;
 
 #[macro_use]
 mod constraint;
@@ -27,7 +27,7 @@ mod constraint;
 /// Objects to generate in the world based on given constraints
 pub struct Tile<T> {
     value: T,
-    constraints: Vec<Constraint>
+    constraints: Vec<Constraint>,
 }
 
 impl<T: Clone> Tile<T> {
@@ -35,14 +35,18 @@ impl<T: Clone> Tile<T> {
     pub fn new(value: T) -> Tile<T> {
         Tile {
             value,
-            constraints: Vec::new()
+            constraints: Vec::new(),
         }
     }
 
     /// Adds a constraint to the tile.
     pub fn when(self, constraint: Constraint) -> Tile<T> {
         Tile {
-            constraints: { let mut cs = self.constraints; cs.push(constraint); cs },
+            constraints: {
+                let mut cs = self.constraints;
+                cs.push(constraint);
+                cs
+            },
             ..self
         }
     }
@@ -54,7 +58,17 @@ impl<T: Clone> Tile<T> {
 
     /// Returns true if the given value would satisfy all of this tile's
     /// constraints.
-    pub fn satisfied_by(&self, x: i64, y: i64, size: Size, chunk_x: i64, chunk_y: i64, nms: &mut HashMap<u64, Vec<Vec<f64>>>) -> bool {
-        self.constraints.iter().all(|constraint| constraint.satisfied_by(x, y, size, chunk_x, chunk_y, nms))
+    pub fn satisfied_by(
+        &self,
+        x: i64,
+        y: i64,
+        size: Size,
+        chunk_x: i64,
+        chunk_y: i64,
+        nms: &mut HashMap<u64, Vec<Vec<f64>>>,
+    ) -> bool {
+        self.constraints
+            .iter()
+            .all(|constraint| constraint.satisfied_by(x, y, size, chunk_x, chunk_y, nms))
     }
 }

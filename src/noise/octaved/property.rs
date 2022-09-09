@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
-//  File: rust-worldgen/noise/perlin/property.rs
+//  File: rust-worldgen/noise/octaved/property.rs
 //////////////////////////////////////////////////////////////////////////////
 //  Copyright 2015 Samuel Sleight
 //
@@ -16,44 +16,40 @@
 //  limitations under the License.
 //////////////////////////////////////////////////////////////////////////////
 
-use super::PerlinNoise;
+use super::OctavedNoise;
 
 use std::default::Default;
 
-/// A property is an option that can be set on a perlin noise
+/// A property is an option that can be set on a octaved noise
 /// source.
-pub trait Property : Default + Copy {
-    fn set_to(self, perlin: PerlinNoise) -> PerlinNoise;
+pub trait Property: Default + Copy {
+    fn set_to<Noise>(self, octaved: OctavedNoise<Noise>) -> OctavedNoise<Noise>;
 }
 
 /// Octaves are the number of layers of coherent noise used
-/// in the generation of perlin noise.
+/// in the generation of octaved noise.
 ///
 /// The default value for this is 8.
 #[derive(Copy, Clone, Debug)]
 pub struct Octaves {
-    pub value: u32
+    pub value: u32,
 }
 
 impl Octaves {
     pub fn of(value: u32) -> Octaves {
-        Octaves {
-            value
-        }
+        Octaves { value }
     }
 }
 
 impl Default for Octaves {
     fn default() -> Octaves {
-        Octaves {
-            value: 8
-        }
+        Octaves { value: 8 }
     }
 }
 
 impl Property for Octaves {
-    fn set_to(self, perlin: PerlinNoise) -> PerlinNoise {
-        perlin.set_octaves(self)
+    fn set_to<Noise>(self, octaved: OctavedNoise<Noise>) -> OctavedNoise<Noise> {
+        octaved.set_octaves(self)
     }
 }
 
@@ -64,28 +60,24 @@ impl Property for Octaves {
 /// The default value for this is 1.0
 #[derive(Copy, Clone, Debug)]
 pub struct Frequency {
-    pub value: f64
+    pub value: f64,
 }
 
 impl Frequency {
     pub fn of(value: f64) -> Frequency {
-        Frequency {
-            value
-        }
+        Frequency { value }
     }
 }
 
 impl Default for Frequency {
     fn default() -> Frequency {
-        Frequency {
-            value: 1.0
-        }
+        Frequency { value: 1.0 }
     }
 }
 
 impl Property for Frequency {
-    fn set_to(self, perlin: PerlinNoise) -> PerlinNoise {
-        perlin.set_frequency(self)
+    fn set_to<Noise>(self, octaved: OctavedNoise<Noise>) -> OctavedNoise<Noise> {
+        octaved.set_frequency(self)
     }
 }
 
@@ -95,28 +87,24 @@ impl Property for Frequency {
 /// The default value for this is 0.5
 #[derive(Copy, Clone, Debug)]
 pub struct Persistence {
-    pub value: f64
+    pub value: f64,
 }
 
 impl Persistence {
     pub fn of(value: f64) -> Persistence {
-        Persistence {
-            value
-        }
+        Persistence { value }
     }
 }
 
 impl Default for Persistence {
     fn default() -> Persistence {
-        Persistence {
-            value: 0.5
-        }
+        Persistence { value: 0.5 }
     }
 }
 
 impl Property for Persistence {
-    fn set_to(self, perlin: PerlinNoise) -> PerlinNoise {
-        perlin.set_persistence(self)
+    fn set_to<Noise>(self, octaved: OctavedNoise<Noise>) -> OctavedNoise<Noise> {
+        octaved.set_persistence(self)
     }
 }
 
@@ -126,27 +114,23 @@ impl Property for Persistence {
 /// The default value for this is 2.0
 #[derive(Copy, Clone, Debug)]
 pub struct Lacunarity {
-    pub value: f64
+    pub value: f64,
 }
 
 impl Lacunarity {
     pub fn of(value: f64) -> Lacunarity {
-        Lacunarity {
-            value
-        }
+        Lacunarity { value }
     }
 }
 
 impl Default for Lacunarity {
     fn default() -> Lacunarity {
-        Lacunarity {
-            value: 2.0
-        }
+        Lacunarity { value: 2.0 }
     }
 }
 
 impl Property for Lacunarity {
-    fn set_to(self, perlin: PerlinNoise) -> PerlinNoise {
-        perlin.set_lacunarity(self)
+    fn set_to<Noise>(self, octaved: OctavedNoise<Noise>) -> OctavedNoise<Noise> {
+        octaved.set_lacunarity(self)
     }
 }

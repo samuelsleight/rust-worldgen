@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
-//  File: rust-worldgen/noise/mod.rs
+//  File: rust-worldgen/noise/perlin.rs
 //////////////////////////////////////////////////////////////////////////////
 //  Copyright 2015 Samuel Sleight
 //
@@ -16,22 +16,30 @@
 //  limitations under the License.
 //////////////////////////////////////////////////////////////////////////////
 
-//! The Noise module provides generators for different kinds of noise.
+//! A provider of perlin noise.
 //!
-//! There are currently two different sources for noise: coherent and perlin.
-//! The coherent noise source provides no customisation and is very simple, and
-//! mainly exists to be used by the perlin source, which is the recommended one
-//! to use at the moment.
-//!
-//! These generators provide a method for generating a noise value at a specific
-//! location, however are best used in combination with a `NoiseMap`
+//! This noise source acts as an alias for the common use case of
+//! octaved coherent noise.
 
-pub mod coherent;
-pub mod octaved;
-pub mod perlin;
+use super::{coherent::CoherentNoise, octaved::OctavedNoise};
 
-/// The trait for a noise generator.
-pub trait NoiseProvider: Default + Clone + Copy {
-    /// This method generates a value of noise at the given location, using a given seed.
-    fn generate(&self, x: f64, y: f64, seed: u64) -> f64;
+/// The perlin noise source
+///
+/// # Example
+///
+/// ```
+/// # use worldgen::noise::perlin::PerlinNoise;
+/// # use worldgen::noise::octaved::Octaves;;
+/// # use worldgen::noise::NoiseProvider;
+/// let noise = PerlinNoise::new()
+///     .set(Octaves::of(5));
+///
+/// let value = noise.generate(1.5, 2.5, 15);
+/// ```
+pub enum PerlinNoise {}
+
+impl PerlinNoise {
+    pub fn new() -> OctavedNoise<CoherentNoise> {
+        OctavedNoise::new(CoherentNoise)
+    }
 }

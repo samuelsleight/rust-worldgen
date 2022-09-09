@@ -20,7 +20,7 @@ use super::World;
 
 pub use crate::noisemap::Size;
 
-pub trait Property : Default + Copy {
+pub trait Property: Default + Copy {
     fn set_to<T: Clone>(self, w: World<T>) -> World<T>;
 }
 

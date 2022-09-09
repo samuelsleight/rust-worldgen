@@ -150,13 +150,13 @@
 //!
 
 #[cfg(test)]
-use noisemap::{NoiseMap, NoiseMapGenerator, Seed, Step, Size};
+use noisemap::{NoiseMap, NoiseMapGenerator, Seed, Size, Step};
 
 #[cfg(test)]
 use noise::perlin::PerlinNoise;
 
 #[cfg(test)]
-use world::{World, Tile};
+use world::{Tile, World};
 
 #[cfg(test)]
 use world::tile::{Constraint, ConstraintType};
@@ -183,19 +183,12 @@ fn it_works() {
 
     let world = World::new()
         .set(Size::of(80, 50))
-
         // Water
-        .add(Tile::new('~')
-             .when(constraint!(nm.clone(), < -0.1)))
-
+        .add(Tile::new('~').when(constraint!(nm.clone(), < -0.1)))
         // Grass
-        .add(Tile::new(',')
-             .when(constraint!(nm.clone(), < 0.45)))
-
+        .add(Tile::new(',').when(constraint!(nm.clone(), < 0.45)))
         // Mountains
-        .add(Tile::new('^')
-             .when(constraint!(nm, > 0.8)))
-
+        .add(Tile::new('^').when(constraint!(nm, > 0.8)))
         // Hills
         .add(Tile::new('n'));
 

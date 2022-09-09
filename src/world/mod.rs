@@ -39,7 +39,7 @@ mod property;
 pub struct World<T> {
     tiles: Vec<Tile<T>>,
 
-    size: Size
+    size: Size,
 }
 
 impl<T> Default for World<T> {
@@ -47,7 +47,7 @@ impl<T> Default for World<T> {
         World {
             tiles: Vec::new(),
 
-            size: Default::default()
+            size: Default::default(),
         }
     }
 }
@@ -83,14 +83,19 @@ impl<T: Clone> World<T> {
     pub fn generate(&self, chunk_x: i64, chunk_y: i64) -> Option<Vec<Vec<T>>> {
         let mut nms = HashMap::new();
 
-        (chunk_y * self.size.h .. (chunk_y + 1) * self.size.h).map(|y|
-            (chunk_x * self.size.w .. (chunk_x + 1) * self.size.w).map(|x| {
-                match self.tiles.iter().find(|tile| tile.satisfied_by(x, y, self.size, chunk_x, chunk_y, &mut nms)) {
-                    Some(tile) => Some(tile.value()),
-                    None => None
-                }
-            }
-            ).collect()
-        ).collect()
+        (chunk_y * self.size.h..(chunk_y + 1) * self.size.h)
+            .map(|y| {
+                (chunk_x * self.size.w..(chunk_x + 1) * self.size.w)
+                    .map(|x| {
+                        match self.tiles.iter().find(|tile| {
+                            tile.satisfied_by(x, y, self.size, chunk_x, chunk_y, &mut nms)
+                        }) {
+                            Some(tile) => Some(tile.value()),
+                            None => None,
+                        }
+                    })
+                    .collect()
+            })
+            .collect()
     }
 }
