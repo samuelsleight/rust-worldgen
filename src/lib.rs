@@ -192,10 +192,10 @@ fn it_works() {
         // Hills
         .add(Tile::new('n'));
 
-    for row in world.generate(0, 0).iter() {
-        for val in row.iter() {
-            for c in val.iter() {
-                print!("{}", c);
+    if let Some(chunk) = world.generate(0, 0) {
+        for row in chunk {
+            for tile in row {
+                print!("{}", tile);
             }
 
             println!();
